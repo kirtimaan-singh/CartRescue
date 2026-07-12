@@ -305,7 +305,4 @@ st.sidebar.write("---")
 st.sidebar.info("🎓 **Internship Project Submission**  \n"
                 "**Title:** E-Commerce Cart Abandonment Predictor  \n"
                 "**Tech Stack:** Python, Streamlit, Scikit-Learn, Plotly")
-```eof
-
----
 
