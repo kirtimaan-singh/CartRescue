@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
+plotly_template = "plotly_dark"
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
@@ -13,67 +14,213 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ----------------- STYLING -----------------
-st.markdown("""
+# ----------------- THEME (Groww-inspired dark UI) -----------------
+BG = "#0E1013"
+SURFACE = "#181B21"
+SURFACE_ALT = "#1F232B"
+BORDER = "#2A2E37"
+TEXT_PRIMARY = "#F5F6F7"
+TEXT_SECONDARY = "#8B8F98"
+ACCENT = "#00D09C"       # Groww teal
+ACCENT_DIM = "#0B8F6C"
+NEGATIVE = "#EB5B3C"
+WARNING = "#F5A623"
+
+st.markdown(f"""
 <style>
-    .main-title {
+    .stApp {{
+        background-color: {BG};
+    }}
+    header[data-testid="stHeader"] {{
+        background-color: {BG};
+    }}
+    .topbar {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 22px;
+        background-color: {SURFACE};
+        border: 1px solid {BORDER};
+        border-radius: 14px;
+        margin-bottom: 22px;
+    }}
+    .topbar-left {{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }}
+    .logo-dot {{
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, {ACCENT} 0%, #2E7DE1 100%);
+        display: inline-block;
+    }}
+    .brand-name {{
         font-family: 'Poppins', sans-serif;
         font-weight: 700;
-        color: #16324F;
-        margin-bottom: 2px;
-        letter-spacing: -0.5px;
-    }
-    .subtitle {
+        font-size: 20px;
+        color: {TEXT_PRIMARY};
+        letter-spacing: -0.3px;
+    }}
+    .brand-tag {{
+        font-size: 12px;
+        color: {TEXT_SECONDARY};
+    }}
+    .subtitle {{
         font-size: 15px;
-        color: #64748B;
-        margin-bottom: 28px;
-    }
-    .metric-card {
-        background-color: #ffffff;
-        border: 1px solid #e2e8f0;
+        color: {TEXT_SECONDARY};
+        margin-bottom: 24px;
+    }}
+    .section-heading {{
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        font-size: 20px;
+        color: {TEXT_PRIMARY};
+        margin: 6px 0 14px 0;
+    }}
+    .metric-card {{
+        background-color: {SURFACE};
+        border: 1px solid {BORDER};
         padding: 20px;
-        border-radius: 10px;
+        border-radius: 14px;
         text-align: center;
-        box-shadow: 0 2px 6px -1px rgba(0,0,0,0.06);
-    }
-    .status-dot {
+    }}
+    .status-dot {{
         display: inline-block;
         width: 10px;
         height: 10px;
         border-radius: 50%;
         margin-right: 8px;
-    }
-    div[data-testid="stSidebar"] {
-        background-color: #101B2D;
-    }
-    div[data-testid="stSidebar"] * {
-        color: #E2E8F0 !important;
-    }
+    }}
+    /* Sidebar */
+    div[data-testid="stSidebar"] {{
+        background-color: {SURFACE};
+        border-right: 1px solid {BORDER};
+    }}
+    div[data-testid="stSidebar"] * {{
+        color: {TEXT_PRIMARY} !important;
+    }}
     div[data-testid="stSidebar"] .stSlider label,
     div[data-testid="stSidebar"] .stSelectbox label,
-    div[data-testid="stSidebar"] .stTextInput label {
-        color: #94A3B8 !important;
+    div[data-testid="stSidebar"] .stTextInput label,
+    div[data-testid="stSidebar"] .stPassword label {{
+        color: {TEXT_SECONDARY} !important;
         font-size: 13px;
-    }
-    .sidebar-section-label {
+    }}
+    .sidebar-section-label {{
         font-size: 11px;
         letter-spacing: 1.5px;
-        color: #64B5F6 !important;
+        color: {ACCENT} !important;
         font-weight: 600;
         margin-top: 18px;
         margin-bottom: 6px;
-        border-bottom: 1px solid #2A3A52;
+        border-bottom: 1px solid {BORDER};
         padding-bottom: 6px;
-    }
-    .seller-badge {
-        background-color: #16324F;
-        border: 1px solid #2A3A52;
-        border-radius: 8px;
+    }}
+    .seller-badge {{
+        background-color: {SURFACE_ALT};
+        border: 1px solid {BORDER};
+        border-radius: 10px;
         padding: 12px;
         margin-bottom: 10px;
-    }
+    }}
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {{
+        gap: 4px;
+    }}
+    .stTabs [data-baseweb="tab"] {{
+        background-color: {SURFACE};
+        border-radius: 8px 8px 0 0;
+        color: {TEXT_SECONDARY};
+    }}
+    .stTabs [aria-selected="true"] {{
+        color: {ACCENT} !important;
+        border-bottom: 2px solid {ACCENT} !important;
+    }}
+    /* Buttons */
+    .stButton > button {{
+        background-color: {ACCENT};
+        color: #06251C;
+        border: none;
+        font-weight: 600;
+        border-radius: 8px;
+    }}
+    .stButton > button:hover {{
+        background-color: {ACCENT_DIM};
+        color: #ffffff;
+    }}
+    /* Auth screen */
+    .auth-card {{
+        background-color: {SURFACE};
+        border: 1px solid {BORDER};
+        border-radius: 16px;
+        padding: 36px 40px;
+        max-width: 460px;
+        margin: 40px auto;
+    }}
 </style>
 """, unsafe_allow_html=True)
+
+# ----------------- SESSION STATE: AUTH -----------------
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "seller_name" not in st.session_state:
+    st.session_state.seller_name = ""
+
+# ----------------- AUTH GATE -----------------
+def render_auth_screen():
+    st.markdown(
+        f"""<div class="topbar">
+            <div class="topbar-left">
+                <span class="logo-dot"></span>
+                <div>
+                    <div class="brand-name">CartGuard Analytics</div>
+                    <div class="brand-tag">Seller Intelligence Console</div>
+                </div>
+            </div>
+        </div>""",
+        unsafe_allow_html=True
+    )
+
+    st.markdown('<div class="auth-card">', unsafe_allow_html=True)
+    st.markdown(
+        f'<p style="text-align:center; color:{TEXT_SECONDARY}; margin-bottom:20px;">'
+        f'Sign in to monitor cart abandonment across your marketplace listings.</p>',
+        unsafe_allow_html=True
+    )
+
+    login_tab, signup_tab = st.tabs(["Sign In", "Create Account"])
+
+    with login_tab:
+        li_business = st.text_input("Business email or store ID", key="login_id")
+        st.text_input("Password", type="password", key="login_pw")
+        if st.button("Sign In", key="login_btn", use_container_width=True):
+            if li_business.strip():
+                st.session_state.authenticated = True
+                st.session_state.seller_name = li_business.split("@")[0].strip().title() or "Seller"
+                st.rerun()
+            else:
+                st.warning("Enter your business email or store ID to continue.")
+
+    with signup_tab:
+        su_name = st.text_input("Business / store name", key="signup_name")
+        su_email = st.text_input("Business email", key="signup_email")
+        st.selectbox("Primary marketplace", ["Amazon", "Flipkart", "Myntra", "Meesho", "Ajio"], key="signup_mp")
+        st.text_input("Create password", type="password", key="signup_pw")
+        if st.button("Create Account", key="signup_btn", use_container_width=True):
+            if su_name.strip() and su_email.strip():
+                st.session_state.authenticated = True
+                st.session_state.seller_name = su_name.strip()
+                st.rerun()
+            else:
+                st.warning("Business name and email are required to create an account.")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+if not st.session_state.authenticated:
+    render_auth_screen()
+    st.stop()
 
 # ----------------- SYNTHETIC MARKETPLACE DATA -----------------
 @st.cache_data
@@ -126,18 +273,31 @@ def train_prediction_model(data):
 
 model, model_accuracy, feature_importances, feature_names = train_prediction_model(df_raw)
 
-# ----------------- HEADER -----------------
-st.markdown('<h1 class="main-title">CartGuard Analytics</h1>', unsafe_allow_html=True)
+# ----------------- TOP BAR -----------------
 st.markdown(
-    '<p class="subtitle">Cart abandonment intelligence for sellers on Amazon, Flipkart, Myntra and other marketplaces — '
-    'know when a shopper is about to walk away from your listing, and what it is costing you.</p>',
+    f"""<div class="topbar">
+        <div class="topbar-left">
+            <span class="logo-dot"></span>
+            <div>
+                <div class="brand-name">CartGuard Analytics</div>
+                <div class="brand-tag">Seller Intelligence Console</div>
+            </div>
+        </div>
+        <div style="color:{TEXT_SECONDARY}; font-size:13px;">Signed in as <span style="color:{TEXT_PRIMARY}; font-weight:600;">{st.session_state.seller_name}</span></div>
+    </div>""",
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    f'<p class="subtitle">Cart abandonment intelligence for sellers on Amazon, Flipkart, Myntra and other marketplaces — '
+    f'know when a shopper is about to walk away from your listing, and what it is costing you.</p>',
     unsafe_allow_html=True
 )
 
 # ----------------- SIDEBAR: SELLER DASHBOARD -----------------
 st.sidebar.markdown('<p class="sidebar-section-label">SELLER PROFILE</p>', unsafe_allow_html=True)
 
-seller_name = st.sidebar.text_input("Business / Store name", value="Aarav Textiles Pvt. Ltd.")
+seller_name = st.sidebar.text_input("Business / Store name", value=st.session_state.seller_name)
 marketplace = st.sidebar.selectbox("Marketplace", ["Amazon", "Flipkart", "Myntra", "Meesho", "Ajio"])
 category = st.sidebar.selectbox(
     "Primary category",
@@ -148,9 +308,9 @@ commission_rate = st.sidebar.slider("Marketplace commission (%)", min_value=5, m
 
 st.sidebar.markdown(
     f"""<div class="seller-badge">
-        <div style="font-size:13px; color:#94A3B8;">Monitoring for</div>
-        <div style="font-size:16px; font-weight:600; color:#F1F5F9;">{seller_name}</div>
-        <div style="font-size:12px; color:#64B5F6;">{marketplace} · {category} · {plan_tier}</div>
+        <div style="font-size:13px; color:{TEXT_SECONDARY};">Monitoring for</div>
+        <div style="font-size:16px; font-weight:600; color:{TEXT_PRIMARY};">{seller_name}</div>
+        <div style="font-size:12px; color:{ACCENT};">{marketplace} · {category} · {plan_tier}</div>
     </div>""",
     unsafe_allow_html=True
 )
@@ -168,15 +328,18 @@ input_returning = st.sidebar.selectbox("Shopper type", ["New shopper", "Returnin
 device_val = 1 if input_device == "Mobile" else 0
 returning_val = 1 if input_returning == "Returning shopper" else 0
 
-st.sidebar.markdown('<p class="sidebar-section-label">ABOUT</p>', unsafe_allow_html=True)
-st.sidebar.caption("CartGuard Analytics — Cart Abandonment Intelligence Engine\nBuilt with Python, Streamlit & scikit-learn")
+st.sidebar.markdown("---")
+if st.sidebar.button("Sign Out", use_container_width=True):
+    st.session_state.authenticated = False
+    st.session_state.seller_name = ""
+    st.rerun()
 
 # ----------------- MAIN NAVIGATION -----------------
 tab1, tab2, tab3 = st.tabs(["Live Session Monitor", "Store Performance", "Recovery ROI Calculator"])
 
 # ----------------- TAB 1: LIVE SESSION MONITOR -----------------
 with tab1:
-    st.subheader(f"Live shopper session — {seller_name}")
+    st.markdown(f'<p class="section-heading">Live shopper session — {seller_name}</p>', unsafe_allow_html=True)
     st.write("Track a live shopper's behaviour on your listing and see, in real time, whether they are likely to abandon the cart.")
 
     live_features = pd.DataFrame({
@@ -194,10 +357,10 @@ with tab1:
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        risk_color = "#DC2626" if prob_abandon > 0.7 else "#D97706" if prob_abandon > 0.4 else "#059669"
+        risk_color = NEGATIVE if prob_abandon > 0.7 else WARNING if prob_abandon > 0.4 else ACCENT
         st.markdown(
             f"""<div class="metric-card">
-                <h4 style='color: #64748B; margin:0; font-weight:500;'>Abandonment Risk</h4>
+                <h4 style='color: {TEXT_SECONDARY}; margin:0; font-weight:500;'>Abandonment Risk</h4>
                 <h1 style='color: {risk_color}; margin:10px 0 0 0; font-size: 36px;'>{prob_abandon:.1%}</h1>
             </div>""",
             unsafe_allow_html=True
@@ -206,22 +369,22 @@ with tab1:
     with col2:
         st.markdown(
             f"""<div class="metric-card">
-                <h4 style='color: #64748B; margin:0; font-weight:500;'>Checkout Likelihood</h4>
-                <h1 style='color: #1E88E5; margin:10px 0 0 0; font-size: 36px;'>{prob_checkout:.1%}</h1>
+                <h4 style='color: {TEXT_SECONDARY}; margin:0; font-weight:500;'>Checkout Likelihood</h4>
+                <h1 style='color: {ACCENT}; margin:10px 0 0 0; font-size: 36px;'>{prob_checkout:.1%}</h1>
             </div>""",
             unsafe_allow_html=True
         )
 
     with col3:
         if prob_abandon > 0.7:
-            status_label, status_color = "High Risk — likely to abandon", "#DC2626"
+            status_label, status_color = "High Risk — likely to abandon", NEGATIVE
         elif prob_abandon > 0.4:
-            status_label, status_color = "Moderate Risk — undecided", "#D97706"
+            status_label, status_color = "Moderate Risk — undecided", WARNING
         else:
-            status_label, status_color = "Low Risk — likely to convert", "#059669"
+            status_label, status_color = "Low Risk — likely to convert", ACCENT
         st.markdown(
             f"""<div class="metric-card">
-                <h4 style='color: #64748B; margin:0; font-weight:500;'>Session Status</h4>
+                <h4 style='color: {TEXT_SECONDARY}; margin:0; font-weight:500;'>Session Status</h4>
                 <div style="margin-top:18px;">
                     <span class="status-dot" style="background-color:{status_color};"></span>
                     <span style='color: {status_color}; font-size:16px; font-weight:600;'>{status_label}</span>
@@ -241,7 +404,7 @@ with tab1:
     )
 
     st.write("---")
-    st.subheader("Recommended Seller Action")
+    st.markdown('<p class="section-heading">Recommended Seller Action</p>', unsafe_allow_html=True)
 
     if prob_abandon >= 0.7:
         st.error("This shopper is likely to exit without completing checkout.")
@@ -268,7 +431,7 @@ with tab1:
 
 # ----------------- TAB 2: STORE PERFORMANCE -----------------
 with tab2:
-    st.header(f"Store performance summary — {seller_name}")
+    st.markdown(f'<p class="section-heading">Store performance summary — {seller_name}</p>', unsafe_allow_html=True)
     st.write(f"Aggregated insight across the last 1,000 shopper sessions on your {marketplace} listings.")
 
     net_margin_factor = 1 - (commission_rate / 100)
@@ -296,9 +459,14 @@ with tab2:
         fig_feat = px.bar(
             feat_df, x='Impact Score', y='Factor', orientation='h',
             title='Leading drivers of cart abandonment',
-            color='Impact Score', color_continuous_scale='Blues'
+            color='Impact Score', color_continuous_scale=[ACCENT_DIM, ACCENT],
+            template=plotly_template
         )
-        fig_feat.update_layout(showlegend=False, height=350)
+        fig_feat.update_layout(
+            showlegend=False, height=350,
+            paper_bgcolor=SURFACE, plot_bgcolor=SURFACE,
+            font_color=TEXT_PRIMARY
+        )
         st.plotly_chart(fig_feat, use_container_width=True)
 
     with col_chart2:
@@ -313,14 +481,19 @@ with tab2:
         fig_cart = px.bar(
             cart_grouped, x='Cart_Range', y='Abandonment (%)',
             title='Abandonment rate by cart value tier',
-            color_discrete_sequence=['#1E88E5']
+            color_discrete_sequence=[ACCENT],
+            template=plotly_template
         )
-        fig_cart.update_layout(height=350)
+        fig_cart.update_layout(
+            height=350,
+            paper_bgcolor=SURFACE, plot_bgcolor=SURFACE,
+            font_color=TEXT_PRIMARY
+        )
         st.plotly_chart(fig_cart, use_container_width=True)
 
 # ----------------- TAB 3: RECOVERY ROI CALCULATOR -----------------
 with tab3:
-    st.header("Recovery ROI Calculator")
+    st.markdown('<p class="section-heading">Recovery ROI Calculator</p>', unsafe_allow_html=True)
     st.write(
         f"Estimate the net revenue {seller_name} could recover by intervening on high-risk sessions "
         f"before they abandon, net of {marketplace}'s {commission_rate}% commission."
@@ -357,6 +530,3 @@ with tab3:
             f"- {marketplace} commission ({commission_rate}%) already deducted below\n\n"
             f"### Net Revenue Recovered: ₹{recovered_net:,.2f}"
         )
-
-st.sidebar.markdown("---")
-st.sidebar.caption(f"Signed in as **{seller_name}** · {marketplace} Seller Console")
