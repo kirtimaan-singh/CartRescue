@@ -16,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ----------------- THEME -----------------
+# ----------------- THEME & FIXED CSS -----------------
 BG = "#0E1013"
 SURFACE = "#181B21"
 SURFACE_ALT = "#1F232B"
@@ -32,6 +32,7 @@ FONT = "'Times New Roman', Times, serif"
 
 st.markdown(f"""
 <style>
+    /* Force Global Font */
     html, body, [class*="css"], .stApp, .stMarkdown, .stText, .stButton, .stDataFrame,
     input, textarea, select, label, .stTabs, .stMetric, .stAlert, p, span, div {{
         font-family: {FONT} !important;
@@ -40,6 +41,53 @@ st.markdown(f"""
     header[data-testid="stHeader"] {{ background-color: {BG}; }}
     p, span, label, .stMarkdown {{ color: {TEXT_PRIMARY}; }}
 
+    /* Fix Sidebar Layout and Colors to match Dark Scheme */
+    div[data-testid="stSidebar"] {{ 
+        background-color: {BG} !important; 
+        border-right: 1px solid {BORDER}; 
+    }}
+    div[data-testid="stSidebar"] * {{ 
+        color: {TEXT_PRIMARY} !important; 
+        font-family: {FONT} !important; 
+    }}
+    div[data-testid="stSidebar"] .stSlider label, 
+    div[data-testid="stSidebar"] .stSelectbox label,
+    div[data-testid="stSidebar"] .stTextInput label {{ 
+        color: {TEXT_SECONDARY} !important; 
+        font-size: 14px; 
+    }}
+    
+    /* Clean Sidebar Input Box Overrides */
+    div[data-testid="stSidebar"] div[data-baseweb="select"] {{
+        background-color: {SURFACE} !important;
+        border: 1px solid {BORDER} !important;
+    }}
+    div[data-testid="stSidebar"] input {{
+        background-color: {SURFACE} !important;
+        border: 1px solid {BORDER} !important;
+        color: {TEXT_PRIMARY} !important;
+    }}
+
+    /* Remove the default broken icon string and insert a clean minimalist arrow */
+    button[data-testid="collapsedControl"] {{
+        color: {TEXT_PRIMARY} !important;
+    }}
+    button[data-testid="sidebar-close-button"] {{
+        background-color: transparent !important;
+    }}
+    button[data-testid="sidebar-close-button"]::before {{
+        content: "←" !important;
+        font-size: 20px !important;
+        color: {TEXT_PRIMARY} !important;
+        font-weight: 700 !important;
+        visibility: visible !important;
+        display: block !important;
+    }}
+    button[data-testid="sidebar-close-button"] svg {{
+        display: none !important;
+    }}
+
+    /* Component Framework Layouts */
     .topbar {{
         display: flex; align-items: center; justify-content: space-between;
         padding: 14px 22px; background-color: {SURFACE};
@@ -82,16 +130,12 @@ st.markdown(f"""
     .benchmark-bar-bg {{ background-color: {SURFACE_ALT}; border-radius: 6px; height: 8px; width: 100%; overflow: hidden; }}
     .benchmark-bar-fill {{ height: 8px; border-radius: 6px; }}
 
-    div[data-testid="stSidebar"] {{ background-color: {SURFACE}; border-right: 1px solid {BORDER}; }}
-    div[data-testid="stSidebar"] * {{ color: {TEXT_PRIMARY} !important; font-family: {FONT} !important; }}
-    div[data-testid="stSidebar"] .stSlider label, div[data-testid="stSidebar"] .stSelectbox label,
-    div[data-testid="stSidebar"] .stTextInput label {{ color: {TEXT_SECONDARY} !important; font-size: 13px; }}
     .sidebar-section-label {{
         font-size: 11.5px; letter-spacing: 1.5px; color: {ACCENT} !important; font-weight: 700;
         margin-top: 18px; margin-bottom: 6px; border-bottom: 1px solid {BORDER}; padding-bottom: 6px;
     }}
     .seller-badge {{ background-color: {SURFACE_ALT}; border: 1px solid {BORDER}; border-radius: 10px; padding: 12px; margin-bottom: 10px; }}
-    .usage-bar-bg {{ background-color: {BG}; border-radius: 6px; height: 7px; width: 100%; overflow: hidden; margin-top: 6px; }}
+    .usage-bar-bg {{ background-color: {SURFACE}; border-radius: 6px; height: 7px; width: 100%; overflow: hidden; margin-top: 6px; }}
     .usage-bar-fill {{ height: 7px; border-radius: 6px; background-color: {ACCENT}; }}
 
     .stTabs [data-baseweb="tab-list"] {{ gap: 4px; }}
