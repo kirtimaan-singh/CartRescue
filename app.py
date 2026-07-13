@@ -598,3 +598,61 @@ with tab4:
                 f"- Discount cost: **₹{discount_cost:,.2f}**\n"
                 f"- {marketplace} commission ({commission_rate}%) already deducted below\n\n"
                 f"### Net Revenue Recovered: ₹{recovered_net:,.2f}")
+        # Insert this updated block inside "with tab1:" right below the metric cards display
+net_margin_factor = 1 - (commission_rate / 100)
+revenue_at_risk = input_cart_val * prob_abandon * net_margin_factor
+st.write("")
+
+# 💡 NEW FEATURE: WHALE ALERT LOGIC
+if prob_abandon > 0.65 and input_cart_val >= 10000:
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, #3A1C1C 0%, #181B21 100%); border: 1px solid {NEGATIVE}; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+        <span style="color:{NEGATIVE}; font-weight:700; font-size:16px;">🔥 WHALE ALERT! High-Value Cart At Risk</span><br>
+        <span style="color:{TEXT_SECONDARY}; font-size:13px;">This transaction is in the top 10% of store ticket sizes. A drop-out here significantly damages today's revenue targets.</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.caption(f"Estimated revenue at risk for this session (net of {commission_rate}% {marketplace} commission): **₹{revenue_at_risk:,.0f}**")
+
+st.write("---")
+st.markdown('<p class="section-heading">Recommended Seller Action</p>', unsafe_allow_html=True)
+if prob_abandon >= 0.7:
+    st.error("This shopper is highly likely to exit without completing checkout.")
+    # Dynamic automated offer calculation based on simulated cart size
+    suggested_coupon = int(input_cart_val * 0.10) if input_cart_val < 10000 else 1500
+    st.info(f"**Suggested Business Interventions:**\n\n"
+            f"1. **Trigger Targeted Popup:** Deploy an automated direct incentive of **₹{suggested_coupon}** to tip the conversion balance.\n"
+            f"2. **Escalate to Live Chat:** Inject an instant callback or active chatbot to clear checkout friction.\n"
+            f"3. **Urgency Hook:** Flash an inventory warning indicating high demand for this specific item group.")
+    @st.cache_data
+def generate_ecommerce_data(n_samples=1000):
+    np.random.seed(42)
+    session_duration = np.random.gamma(shape=3, scale=2, size=n_samples) * 30
+    cart_value = np.random.exponential(scale=3500, size=n_samples) + 499
+    num_items = np.random.randint(1, 8, size=n_samples)
+    scroll_depth = np.random.uniform(15, 100, size=n_samples)
+    device_type = np.random.choice([0, 1], size=n_samples, p=[0.25, 0.75])
+    is_returning_user = np.random.choice([0, 1], size=n_samples, p=[0.6, 0.4])
+
+    # Smart feature mapping logic shifts coefficients dynamically
+    abandon_prob = (
+        0.38 * (cart_value > 7500) + 0.28 * (session_duration < 50) +
+        0.22 * (scroll_depth < 45) + 0.12 * (device_type == 1) -
+        0.08 * (is_returning_user == 1) + np.random.normal(0, 0.08, n_samples)
+    )
+    abandon_prob = np.clip((abandon_prob - abandon_prob.min()) / (abandon_prob.max() - abandon_prob.min()), 0, 1)
+    abandoned = (abandon_prob > 0.53).astype(int)
+
+    dates = pd.to_datetime(datetime.now().date()) - pd.to_timedelta(np.random.randint(0, 30, size=n_samples), unit="D")
+    skus = np.random.choice(
+        ["Classic Cotton Kurta", "Running Shoes Pro", "Wireless Earbuds X2", "Stainless Steel Bottle",
+         "Denim Jacket", "Smart Fitness Band", "Ceramic Cookware Set", "Leather Wallet"], size=n_samples
+    )
+
+    df = pd.DataFrame({
+        'Date': dates, 'SKU': skus, 'Session_Duration_Sec': session_duration.astype(int),
+        'Cart_Value_INR': np.round(cart_value, 2), 'Num_Items': num_items,
+        'Scroll_Depth_Pct': np.round(scroll_depth, 1), 'Device_Mobile': device_type,
+        'Is_Returning': is_returning_user, 'Abandoned': abandoned
+    })
+    return df
