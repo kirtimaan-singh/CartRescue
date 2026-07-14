@@ -20,6 +20,7 @@ st.set_page_config(
 BG = "#0E1013"
 SURFACE = "#181B21"
 SURFACE_ALT = "#1F232B"
+SURFACE_ALT2 = "#262B34"
 BORDER = "#2A2E37"
 TEXT_PRIMARY = "#FFFFFF"
 TEXT_SECONDARY = "#B7BAC1"
@@ -41,50 +42,99 @@ st.markdown(f"""
     header[data-testid="stHeader"] {{ background-color: {BG}; }}
     p, span, label, .stMarkdown {{ color: {TEXT_PRIMARY}; }}
 
-    /* Fix Sidebar Layout and Colors to match Dark Scheme */
-    div[data-testid="stSidebar"] {{ 
-        background-color: {BG} !important; 
-        border-right: 1px solid {BORDER}; 
+    /* ================= SIDEBAR — DARK THEME, ALL TEXT VISIBLE ================= */
+    div[data-testid="stSidebar"] {{
+        background-color: {BG} !important;
+        border-right: 1px solid {BORDER};
     }}
-    div[data-testid="stSidebar"] * {{ 
-        color: {TEXT_PRIMARY} !important; 
-        font-family: {FONT} !important; 
+    div[data-testid="stSidebar"] > div {{
+        background-color: {BG} !important;
     }}
-    div[data-testid="stSidebar"] .stSlider label, 
+    /* Catch-all so nothing renders as invisible/near-black-on-black text */
+    div[data-testid="stSidebar"] * {{
+        color: {TEXT_PRIMARY} !important;
+        font-family: {FONT} !important;
+    }}
+    div[data-testid="stSidebar"] .stSlider label,
     div[data-testid="stSidebar"] .stSelectbox label,
-    div[data-testid="stSidebar"] .stTextInput label {{ 
-        color: {TEXT_SECONDARY} !important; 
-        font-size: 14px; 
+    div[data-testid="stSidebar"] .stTextInput label {{
+        color: {TEXT_SECONDARY} !important;
+        font-size: 14px;
     }}
-    
+    /* Slider numeric value bubbles + track ticks */
+    div[data-testid="stSidebar"] [data-testid="stTickBarMin"],
+    div[data-testid="stSidebar"] [data-testid="stTickBarMax"],
+    div[data-testid="stSidebar"] [data-testid="stThumbValue"] {{
+        color: {TEXT_PRIMARY} !important;
+        background-color: transparent !important;
+    }}
+
     /* Clean Sidebar Input Box Overrides */
-    div[data-testid="stSidebar"] div[data-baseweb="select"] {{
+    div[data-testid="stSidebar"] div[data-baseweb="select"] > div {{
         background-color: {SURFACE} !important;
         border: 1px solid {BORDER} !important;
+        color: {TEXT_PRIMARY} !important;
     }}
     div[data-testid="stSidebar"] input {{
         background-color: {SURFACE} !important;
         border: 1px solid {BORDER} !important;
         color: {TEXT_PRIMARY} !important;
     }}
+    div[data-testid="stSidebar"] input::placeholder {{
+        color: {TEXT_SECONDARY} !important;
+        opacity: 1;
+    }}
 
-    /* Remove the default broken icon string and insert a clean minimalist arrow */
-    button[data-testid="collapsedControl"] {{
+    /* Selectbox dropdown menus render in a portal OUTSIDE the sidebar div,
+       so they must be themed globally, not scoped under stSidebar */
+    div[data-baseweb="popover"] {{
+        background-color: {SURFACE} !important;
+    }}
+    div[data-baseweb="popover"] ul,
+    ul[data-testid="stSelectboxVirtualDropdown"] {{
+        background-color: {SURFACE} !important;
+        border: 1px solid {BORDER} !important;
+    }}
+    div[data-baseweb="popover"] li,
+    ul[data-testid="stSelectboxVirtualDropdown"] li {{
+        background-color: {SURFACE} !important;
         color: {TEXT_PRIMARY} !important;
     }}
-    button[data-testid="sidebar-close-button"] {{
-        background-color: transparent !important;
+    div[data-baseweb="popover"] li:hover,
+    ul[data-testid="stSelectboxVirtualDropdown"] li:hover {{
+        background-color: {SURFACE_ALT2} !important;
     }}
-    button[data-testid="sidebar-close-button"]::before {{
+
+    /* ---- Sidebar collapse / expand controls: remove leaked icon-ligature text ---- */
+    /* When sidebar is open, the collapse button lives here */
+    [data-testid="stSidebarCollapseButton"] button,
+    [data-testid="stSidebarCollapsedControl"] button,
+    button[data-testid="collapsedControl"],
+    button[data-testid="baseButton-headerNoPadding"] {{
+        background-color: transparent !important;
+        border: none !important;
+    }}
+    /* Hide the raw material-icon ligature text (e.g. "keyboard_double_arrow_left") */
+    [data-testid="stSidebarCollapseButton"] span[data-testid="stIconMaterial"],
+    [data-testid="stSidebarCollapsedControl"] span[data-testid="stIconMaterial"] {{
+        font-size: 0 !important;
+        line-height: 0 !important;
+        color: transparent !important;
+    }}
+    /* Draw a clean custom arrow instead */
+    [data-testid="stSidebarCollapseButton"] span[data-testid="stIconMaterial"]::before {{
         content: "←" !important;
         font-size: 20px !important;
+        line-height: 1 !important;
         color: {TEXT_PRIMARY} !important;
         font-weight: 700 !important;
-        visibility: visible !important;
-        display: block !important;
     }}
-    button[data-testid="sidebar-close-button"] svg {{
-        display: none !important;
+    [data-testid="stSidebarCollapsedControl"] span[data-testid="stIconMaterial"]::before {{
+        content: "→" !important;
+        font-size: 20px !important;
+        line-height: 1 !important;
+        color: {TEXT_PRIMARY} !important;
+        font-weight: 700 !important;
     }}
 
     /* Component Framework Layouts */
