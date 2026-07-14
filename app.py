@@ -43,18 +43,32 @@ st.markdown(f"""
     p, span, label, .stMarkdown {{ color: {TEXT_PRIMARY}; }}
 
     /* ================= SIDEBAR — DARK THEME, ALL TEXT VISIBLE ================= */
-    div[data-testid="stSidebar"] {{
+    /* Override Streamlit's own theme variables first — the platform's default
+       light sidebar theme wins on specificity otherwise, no matter what we set below */
+    :root, .stApp {{
+        --secondary-background-color: {BG} !important;
+        --background-color: {BG} !important;
+        --text-color: {TEXT_PRIMARY} !important;
+    }}
+    /* Cover every possible sidebar wrapper element across Streamlit versions */
+    section[data-testid="stSidebar"],
+    div[data-testid="stSidebar"],
+    section[data-testid="stSidebar"] > div,
+    div[data-testid="stSidebar"] > div,
+    [data-testid="stSidebarContent"],
+    [data-testid="stSidebarUserContent"] {{
         background-color: {BG} !important;
         border-right: 1px solid {BORDER};
     }}
-    div[data-testid="stSidebar"] > div {{
-        background-color: {BG} !important;
-    }}
     /* Catch-all so nothing renders as invisible/near-black-on-black text */
+    section[data-testid="stSidebar"] *,
     div[data-testid="stSidebar"] * {{
         color: {TEXT_PRIMARY} !important;
         font-family: {FONT} !important;
     }}
+    section[data-testid="stSidebar"] .stSlider label,
+    section[data-testid="stSidebar"] .stSelectbox label,
+    section[data-testid="stSidebar"] .stTextInput label,
     div[data-testid="stSidebar"] .stSlider label,
     div[data-testid="stSidebar"] .stSelectbox label,
     div[data-testid="stSidebar"] .stTextInput label {{
@@ -62,6 +76,9 @@ st.markdown(f"""
         font-size: 14px;
     }}
     /* Slider numeric value bubbles + track ticks */
+    section[data-testid="stSidebar"] [data-testid="stTickBarMin"],
+    section[data-testid="stSidebar"] [data-testid="stTickBarMax"],
+    section[data-testid="stSidebar"] [data-testid="stThumbValue"],
     div[data-testid="stSidebar"] [data-testid="stTickBarMin"],
     div[data-testid="stSidebar"] [data-testid="stTickBarMax"],
     div[data-testid="stSidebar"] [data-testid="stThumbValue"] {{
@@ -69,20 +86,32 @@ st.markdown(f"""
         background-color: transparent !important;
     }}
 
-    /* Clean Sidebar Input Box Overrides */
+    /* Clean Sidebar Input Box Overrides — dark fields with light text/icons */
+    section[data-testid="stSidebar"] div[data-baseweb="select"] > div,
     div[data-testid="stSidebar"] div[data-baseweb="select"] > div {{
         background-color: {SURFACE} !important;
         border: 1px solid {BORDER} !important;
         color: {TEXT_PRIMARY} !important;
     }}
+    section[data-testid="stSidebar"] div[data-baseweb="select"] svg,
+    div[data-testid="stSidebar"] div[data-baseweb="select"] svg {{
+        fill: {TEXT_PRIMARY} !important;
+    }}
+    section[data-testid="stSidebar"] input,
     div[data-testid="stSidebar"] input {{
         background-color: {SURFACE} !important;
         border: 1px solid {BORDER} !important;
         color: {TEXT_PRIMARY} !important;
     }}
+    section[data-testid="stSidebar"] input::placeholder,
     div[data-testid="stSidebar"] input::placeholder {{
         color: {TEXT_SECONDARY} !important;
         opacity: 1;
+    }}
+    section[data-testid="stSidebar"] [data-baseweb="base-input"],
+    div[data-testid="stSidebar"] [data-baseweb="base-input"] {{
+        background-color: {SURFACE} !important;
+        border: 1px solid {BORDER} !important;
     }}
 
     /* Selectbox dropdown menus render in a portal OUTSIDE the sidebar div,
